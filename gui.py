@@ -2,32 +2,61 @@ import tkinter
 
 root = tkinter.Tk()
 
-def tile_on_click(event, tile, canvas):
-	canvas.itemconfig("current", text="1")
-
-def canvas_on_click(event):
-	#TODO: round the event coordinate to find the nearest tile, and retrieve the tile via its coordinate, then modify the tile.
-	canvas = event.widget
-	x = canvas.canvasx(event.x)
-	y = canvas.canvasy(event.y)
-	item = canvas.find_closest(x, y)
-	canvas.delete(item)
-
 class SudokuSolver:
 
 	def __init__(self):
 		self.canvas = tkinter.Canvas(root, width=450, height=400)
 		self.coordinates = []
 
+	#Helper functions
+	def find_closest_tile_x(self, rawval):		
+		if rawval <= 45 or rawval >= 405:
+			return -1
+
+		for i in range(len(self.coordinates)):
+			if i == 0:
+				if rawval > 45 and rawval <= 65:
+					return self.coordinates[i][0]				
+			elif i == len(self.coordinates)-1:
+				if rawval < 405 and rawval >= 385:
+					return self.coordinates[i][0]					
+			elif self.coordinates[i-1][0] <= rawval and self.coordinates[i][0] >= rawval:
+				leftdiff = rawval - self.coordinates[i-1][0]
+				rightdiff = self.coordinates[i][0] - rawval
+				if leftdiff <= rightdiff:
+					return self.coordinates[i-1][0]					
+				else:
+					return self.coordinates[i][0]					
+
+	#TODO
+	#def find_closest_tile_y(self, x, rawval):
+
+
+	#Callbacks
+	def tile_on_click(self, event, tile, canvas):
+		canvas.itemconfig("current", text="1")
+
+	def canvas_on_click(self, event):
+		# TODO: round the event coordinate to find the nearest tile, and retrieve the tile via its coordinate, then modify the tile.
+		
+		mousex = self.canvas.canvasx(event.x)
+		mousey = self.canvas.canvasy(event.y)
+		x, y = self.find_closest_tile_x(mousex), -1			
+		
+		print(x, y)
+
+
 	def create_sudoku_board(self):
 
 		global root
 		board = [[None for j in range(9)] for _ in range(9)]
 
+
 		spacing = 40
 		start_y = 10
 		start_x = 45
 		board_size = 360
+
 
 		for i in range(10):
 			y = i*spacing+start_y
@@ -46,7 +75,7 @@ class SudokuSolver:
 				c = self.canvas.coords(tile)
 				self.coordinates.append(c)
 
-		self.canvas.bind("<Button-1>", canvas_on_click)
+		self.canvas.bind("<Button-1>", self.canvas_on_click)
 		self.canvas.pack()
 		print(self.coordinates)
 
