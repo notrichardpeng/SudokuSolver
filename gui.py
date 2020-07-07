@@ -15,22 +15,52 @@ class SudokuSolver:
 
 		for i in range(len(self.coordinates)):
 			if i == 0:
-				if rawval > 45 and rawval <= 65:
+				if rawval <= self.coordinates[i][0]:
 					return self.coordinates[i][0]				
-			elif i == len(self.coordinates)-1:
-				if rawval < 405 and rawval >= 385:
-					return self.coordinates[i][0]					
 			elif self.coordinates[i-1][0] <= rawval and self.coordinates[i][0] >= rawval:
 				leftdiff = rawval - self.coordinates[i-1][0]
 				rightdiff = self.coordinates[i][0] - rawval
 				if leftdiff <= rightdiff:
 					return self.coordinates[i-1][0]					
 				else:
-					return self.coordinates[i][0]					
+					return self.coordinates[i][0]
+
+		i -= 1
+		if rawval >= self.coordinates[i][0]:
+			return self.coordinates[i][0]
+			
+		return -1					
 
 	#TODO
-	#def find_closest_tile_y(self, x, rawval):
+	def find_closest_tile_y(self, x, rawval):
+		if rawval <= 10 or rawval >= 370:
+			return -1
 
+		start = -1
+		for i in range(len(self.coordinates)):
+			if self.coordinates[i][0] == x:
+				start = i
+				break
+		
+		i = start
+		while i < len(self.coordinates) and self.coordinates[i][0] == x:
+			if i == 0 or self.coordinates[i-1][0] != x:
+				if rawval <= self.coordinates[i][1]:
+					return self.coordinates[i][1]			
+			elif self.coordinates[i-1][1] <= rawval and self.coordinates[i][1] >= rawval:
+				leftdiff = rawval - self.coordinates[i-1][1]
+				rightdiff = self.coordinates[i][1] - rawval
+				if leftdiff <= rightdiff:
+					return self.coordinates[i-1][1]					
+				else:
+					return self.coordinates[i][1]	
+			i += 1
+
+		i -= 1		
+		if rawval >= self.coordinates[i][1]:
+			return self.coordinates[i][1]
+
+		return -1
 
 	#Callbacks
 	def tile_on_click(self, event, tile, canvas):
@@ -41,9 +71,10 @@ class SudokuSolver:
 		
 		mousex = self.canvas.canvasx(event.x)
 		mousey = self.canvas.canvasy(event.y)
-		x, y = self.find_closest_tile_x(mousex), -1			
+		x = self.find_closest_tile_x(mousex) 
+		y = self.find_closest_tile_y(x, mousey)			
 		
-		print(x, y)
+		print(x, y, mousex, mousey)
 
 
 	def create_sudoku_board(self):
@@ -76,8 +107,7 @@ class SudokuSolver:
 				self.coordinates.append(c)
 
 		self.canvas.bind("<Button-1>", self.canvas_on_click)
-		self.canvas.pack()
-		print(self.coordinates)
+		self.canvas.pack()		
 
 def main():	
 	root.geometry('500x500')
