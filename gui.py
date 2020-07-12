@@ -4,8 +4,10 @@ import tkinter
 root = tkinter.Tk()
 canvas = tkinter.Canvas(root, width=450, height=400)	
 tile_coordinates = []
+board = []
+
 edit_number = " "
-edit_number_buttons = []
+current_active_number = None
 
 #Helper functions-----------------------------------------------------------------------------------------
 
@@ -72,16 +74,28 @@ def canvas_on_click(event):
 	if x >= 0 and y >= 0: canvas.itemconfig(canvas.find_closest(x, y), text=edit_number)	
 
 
-def edit_number_button(num):
+def edit_number_button(num, b):
 	global edit_number
+	global current_active_number
 	edit_number = num
-	print(edit_number + " a")
+
+	if current_active_number == b:
+		current_active_number.config(relief=tkinter.RAISED)
+		current_active_number = None
+		edit_number = " "
+		return
+
+	if current_active_number: current_active_number.config(relief=tkinter.RAISED)
+	b.config(relief=tkinter.SUNKEN)	
+	current_active_number = b
+
+#def clear_board():
+
 
 #Visual----------------------------------------------------------------------------------------------
 
-def create_sudoku_board():
-
-	global root
+def create_sudoku_board():	
+	global board
 	board = [[None for j in range(9)] for _ in range(9)]
 	spacing = 40
 	start_y = 10
@@ -100,20 +114,36 @@ def create_sudoku_board():
 			for j in range(9):
 				x = i*spacing+(spacing/2)+start_x
 				y = j*spacing+(spacing/2)+start_y
+
 				tile = canvas.create_text(x, y, text=" ")
 				c = canvas.coords(tile)
 				tile_coordinates.append(c)
+			
 
 	canvas.bind("<Button-1>", canvas_on_click)
-	canvas.pack()		
+	canvas.pack()	
+	print(board)	
 
-def create_number_buttons():
+def create_number_buttons():	
 	numbers = tkinter.Frame(root, bd=0)
-	numbers.pack(pady=5)
+	numbers.pack()
+
+	text = tkinter.Label(numbers, text="Edit")
+	text.pack(side=tkinter.LEFT, padx=5)
 
 	for i in range(1, 10):
-		button = tkinter.Button(numbers, text=str(i), command=lambda i=i: edit_number_button(str(i)))
+		button = tkinter.Button(numbers, text=str(i))
+		button.config(command=lambda i=i,button=button: edit_number_button(str(i), button))
 		button.pack(side=tkinter.LEFT, padx=5)		
+
+	delete = tkinter.Button(numbers, text="remove")
+	delete.config(command=lambda i=i,button=delete: edit_number_button("", button))
+	delete.pack(side=tkinter.LEFT, padx=5)
+	deleteAll = tkinter.Button(numbers, text="clear")
+	#deleteAll.config(command=clear_board)
+	deleteAll.pack(side=tkinter.LEFT, padx=5)
+
+#----------------------------------------------------------------------------------------------------
 
 def main():	
 	root.geometry('500x500')
