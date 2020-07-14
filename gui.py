@@ -4,7 +4,6 @@ import tkinter
 root = tkinter.Tk()
 canvas = tkinter.Canvas(root, width=450, height=400)	
 tile_coordinates = []
-board = []
 
 edit_number = " "
 current_active_number = None
@@ -75,8 +74,7 @@ def canvas_on_click(event):
 
 
 def edit_number_button(num, b):
-	global edit_number
-	global current_active_number
+	global edit_number, current_active_number	
 	edit_number = num
 
 	if current_active_number == b:
@@ -89,8 +87,16 @@ def edit_number_button(num, b):
 	b.config(relief=tkinter.SUNKEN)	
 	current_active_number = b
 
-#def clear_board():
+def clear_board():
+	global canvas, current_active_number, edit_number
+	tiles = canvas.find_withtag("tile")
+	for i in tiles:
+		canvas.itemconfig(i, text=" ")
 
+	if current_active_number != None:
+		current_active_number.config(relief=tkinter.RAISED)
+		edit_number = " "
+		current_active_number = None
 
 #Visual----------------------------------------------------------------------------------------------
 
@@ -115,14 +121,13 @@ def create_sudoku_board():
 				x = i*spacing+(spacing/2)+start_x
 				y = j*spacing+(spacing/2)+start_y
 
-				tile = canvas.create_text(x, y, text=" ")
+				tile = canvas.create_text(x, y, text=" ", tags=("tile", "tile"+str(i)+str(j)))
 				c = canvas.coords(tile)
 				tile_coordinates.append(c)
 			
 
 	canvas.bind("<Button-1>", canvas_on_click)
-	canvas.pack()	
-	print(board)	
+	canvas.pack()		
 
 def create_number_buttons():	
 	numbers = tkinter.Frame(root, bd=0)
@@ -140,8 +145,16 @@ def create_number_buttons():
 	delete.config(command=lambda i=i,button=delete: edit_number_button("", button))
 	delete.pack(side=tkinter.LEFT, padx=5)
 	deleteAll = tkinter.Button(numbers, text="clear")
-	#deleteAll.config(command=clear_board)
+	deleteAll.config(command=clear_board)
 	deleteAll.pack(side=tkinter.LEFT, padx=5)
+
+def create_utility_buttons():
+	buttons = tkinter.Frame(root, bd=0)
+	buttons.pack(pady=5)
+	generate = tkinter.Button(buttons, text="Generate Random")
+	solve = tkinter.Button(buttons, text="Solve")
+	generate.pack(side=tkinter.LEFT, padx=5)
+	solve.pack(side=tkinter.LEFT, padx=5)
 
 #----------------------------------------------------------------------------------------------------
 
@@ -150,6 +163,7 @@ def main():
 	root.title('Sudoku Solver')	
 	create_sudoku_board()
 	create_number_buttons()
+	create_utility_buttons()
 	root.mainloop()
 
 if __name__ == '__main__':
