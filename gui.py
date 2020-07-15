@@ -4,6 +4,10 @@ import tkinter
 root = tkinter.Tk()
 canvas = tkinter.Canvas(root, width=450, height=400)	
 tile_coordinates = []
+tile_x = []
+tile_y = []
+board = [[-1 for i in range(9)] for j in range(9)]
+valid_values = {}
 
 edit_number = " "
 current_active_number = None
@@ -14,50 +18,40 @@ def find_closest_tile_x(rawval):
 	if rawval <= 45 or rawval >= 405:
 		return -1
 
-	for i in range(len(tile_coordinates)):
+	for i in range(len(tile_x)):
 		if i == 0:
-			if rawval <= tile_coordinates[i][0]:
-				return tile_coordinates[i][0]				
-		elif tile_coordinates[i-1][0] <= rawval and tile_coordinates[i][0] >= rawval:
-			leftdiff = rawval - tile_coordinates[i-1][0]
-			rightdiff = tile_coordinates[i][0] - rawval
+			if rawval <= tile_x[i]:
+				return i
+		elif tile_x[i-1] <= rawval and tile_x[i] >= rawval:
+			leftdiff = rawval - tile_x[i-1]
+			rightdiff = tile_x[i] - rawval
 			if leftdiff <= rightdiff:
-				return tile_coordinates[i-1][0]					
+				return i-1
 			else:
-				return tile_coordinates[i][0]
-
-	i -= 1
-	if rawval >= tile_coordinates[i][0]:
-		return tile_coordinates[i][0]
+				return i
+	
+	if rawval >= tile_x[i]:
+		return i
 	return -1					
 
-def find_closest_tile_y(x, rawval):
+def find_closest_tile_y(rawval):
 	if rawval <= 10 or rawval >= 370:
 		return -1
-
-	start = -1
-	for i in range(len(tile_coordinates)):
-		if tile_coordinates[i][0] == x:
-			start = i
-			break
 		
-	i = start
-	while i < len(tile_coordinates) and tile_coordinates[i][0] == x:
-		if i == 0 or tile_coordinates[i-1][0] != x:
-			if rawval <= tile_coordinates[i][1]:
-				return tile_coordinates[i][1]			
-		elif tile_coordinates[i-1][1] <= rawval and tile_coordinates[i][1] >= rawval:
-			leftdiff = rawval - tile_coordinates[i-1][1]
-			rightdiff = tile_coordinates[i][1] - rawval
+	for i in range(len(tile_y)):
+		if i == 0:
+			if rawval <= tile_y[i]:
+				return i
+		elif tile_y[i-1] <= rawval and tile_y[i] >= rawval:
+			leftdiff = rawval - tile_y[i-1]
+			rightdiff = tile_y[i] - rawval
 			if leftdiff <= rightdiff:
-				return tile_coordinates[i-1][1]					
+				return i-1
 			else:
-				return tile_coordinates[i][1]	
-		i += 1
-	i -= 1		
-	if rawval >= tile_coordinates[i][1]:
-		return tile_coordinates[i][1]
-
+				return i
+	
+	if rawval >= tile_y[i]:
+		return i
 	return -1
 
 #Callbacks-------------------------------------------------------------------------------------------
@@ -69,8 +63,14 @@ def canvas_on_click(event):
 	mousex = canvas.canvasx(event.x)
 	mousey = canvas.canvasy(event.y)
 	x = find_closest_tile_x(mousex) 
-	y = find_closest_tile_y(x, mousey)					
-	if x >= 0 and y >= 0: canvas.itemconfig(canvas.find_closest(x, y), text=edit_number)	
+	y = find_closest_tile_y(mousey)	
+	print(x, y)		
+	if x < 0 or y < 0: return
+
+	#clicked = canvas.find_closest(x, y)
+	clicked = board[x][y]
+	if canvas.itemcget(clicked, 'text') == "X": return
+	canvas.itemconfig(clicked, text=edit_number)	
 
 
 def edit_number_button(num, b):
@@ -101,8 +101,7 @@ def clear_board():
 #Visual----------------------------------------------------------------------------------------------
 
 def create_sudoku_board():	
-	global board
-	board = [[None for j in range(9)] for _ in range(9)]
+	global valid_values, board	
 	spacing = 40
 	start_y = 10
 	start_x = 45
@@ -116,16 +115,22 @@ def create_sudoku_board():
 		x = i*spacing+start_x
 		if i % 3 == 0: canvas.create_line(x, start_y, x, start_y+board_size, width=3)
 		else: canvas.create_line(x, start_y, x, start_y+board_size)
-		for i in range(9):
-			for j in range(9):
-				x = i*spacing+(spacing/2)+start_x
-				y = j*spacing+(spacing/2)+start_y
+	for i in range(9):
+		cx, cy = 0, 0
+		for j in range(9):
+			x = i*spacing+(spacing/2)+start_x
+			y = j*spacing+(spacing/2)+start_y
 
-				tile = canvas.create_text(x, y, text=" ", tags=("tile", "tile"+str(i)+str(j)))
-				c = canvas.coords(tile)
-				tile_coordinates.append(c)
-			
+			tile = canvas.create_text(x, y, text=" ", tags=("tile", "tile"+str(i)+str(j)))
+			c = canvas.coords(tile)				
+			cx, cy = c[0], c[1]
+			if len(tile_y) < 9: tile_y.append(cy)
+			tile_coordinates.append(c)
+			board[i][j] = tile			
+		tile_x.append(cx)		
 
+	print(tile_x)
+	print(tile_y)
 	canvas.bind("<Button-1>", canvas_on_click)
 	canvas.pack()		
 
