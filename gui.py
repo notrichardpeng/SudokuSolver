@@ -1,58 +1,28 @@
 
 import tkinter
+import board_manager as BM
 
 root = tkinter.Tk()
 canvas = tkinter.Canvas(root, width=450, height=400)	
-tile_coordinates = []
-tile_x = []
-tile_y = []
-board = [[-1 for i in range(9)] for j in range(9)]
-valid_values = {}
 
 edit_number = " "
 current_active_number = None
 
 #Helper functions-----------------------------------------------------------------------------------------
 
-def find_closest_tile_x(rawval):		
-	if rawval <= 45 or rawval >= 405:
-		return -1
+def reset_active_number():
+	global current_active_number, edit_number	
+	if current_active_number:
+		current_active_number.config(relief=tkinter.RAISED)
+		current_active_number = None
+	edit_number = " "
 
-	for i in range(len(tile_x)):
-		if i == 0:
-			if rawval <= tile_x[i]:
-				return i
-		elif tile_x[i-1] <= rawval and tile_x[i] >= rawval:
-			leftdiff = rawval - tile_x[i-1]
-			rightdiff = tile_x[i] - rawval
-			if leftdiff <= rightdiff:
-				return i-1
-			else:
-				return i
-	
-	if rawval >= tile_x[i]:
-		return i
-	return -1					
-
-def find_closest_tile_y(rawval):
-	if rawval <= 10 or rawval >= 370:
-		return -1
-		
-	for i in range(len(tile_y)):
-		if i == 0:
-			if rawval <= tile_y[i]:
-				return i
-		elif tile_y[i-1] <= rawval and tile_y[i] >= rawval:
-			leftdiff = rawval - tile_y[i-1]
-			rightdiff = tile_y[i] - rawval
-			if leftdiff <= rightdiff:
-				return i-1
-			else:
-				return i
-	
-	if rawval >= tile_y[i]:
-		return i
-	return -1
+def clear_x():
+	global canvas
+	for i in range(9):
+		for j in range(9):
+			if canvas.itemcget(BM.board[i][j], 'text') == 'X':
+				canvas.itemconfig(BM.board[i][j], text=" ")
 
 #Callbacks-------------------------------------------------------------------------------------------
 
@@ -62,26 +32,30 @@ def canvas_on_click(event):
 	
 	mousex = canvas.canvasx(event.x)
 	mousey = canvas.canvasy(event.y)
-	x = find_closest_tile_x(mousex) 
-	y = find_closest_tile_y(mousey)	
-	print(x, y)		
+	x = BM.find_closest_tile_x(mousex) 
+	y = BM.find_closest_tile_y(mousey)	
+	
 	if x < 0 or y < 0: return
-
-	#clicked = canvas.find_closest(x, y)
-	clicked = board[x][y]
-	if canvas.itemcget(clicked, 'text') == "X": return
-	canvas.itemconfig(clicked, text=edit_number)	
-
+	
+	clicked = BM.board[x][y]
+	if canvas.itemcget(clicked, 'text') != "X": 
+		canvas.itemconfig(clicked, text=edit_number)
+		BM.update_valid(x, y, int(edit_number)-1)	
 
 def edit_number_button(num, b):
-	global edit_number, current_active_number	
+	global edit_number, current_active_number, canvas	
 	edit_number = num
-
+	
+	clear_x()
 	if current_active_number == b:
-		current_active_number.config(relief=tkinter.RAISED)
-		current_active_number = None
-		edit_number = " "
+		reset_active_number()		
 		return
+
+	check = int(num)-1
+	for i in range(9):
+		for j in range(9):
+			if BM.valid_numbers[i][j][check] and canvas.itemcget(BM.board[i][j], 'text') == ' ':
+				canvas.itemconfig(BM.board[i][j], text='X')
 
 	if current_active_number: current_active_number.config(relief=tkinter.RAISED)
 	b.config(relief=tkinter.SUNKEN)	
@@ -94,14 +68,21 @@ def clear_board():
 		canvas.itemconfig(i, text=" ")
 
 	if current_active_number != None:
-		current_active_number.config(relief=tkinter.RAISED)
-		edit_number = " "
-		current_active_number = None
+		reset_active_number()
+		clear_x()
+		return
+
+def generate_random():
+	reset_active_number()
+	clear_x()
+
+def solve_sudoku():
+	reset_active_number()
+	clear_x()
 
 #Visual----------------------------------------------------------------------------------------------
 
 def create_sudoku_board():	
-	global valid_values, board	
 	spacing = 40
 	start_y = 10
 	start_x = 45
@@ -124,13 +105,10 @@ def create_sudoku_board():
 			tile = canvas.create_text(x, y, text=" ", tags=("tile", "tile"+str(i)+str(j)))
 			c = canvas.coords(tile)				
 			cx, cy = c[0], c[1]
-			if len(tile_y) < 9: tile_y.append(cy)
-			tile_coordinates.append(c)
-			board[i][j] = tile			
-		tile_x.append(cx)		
+			if len(BM.tile_y) < 9: BM.tile_y.append(cy)			
+			BM.board[i][j] = tile			
+		BM.tile_x.append(cx)		
 
-	print(tile_x)
-	print(tile_y)
 	canvas.bind("<Button-1>", canvas_on_click)
 	canvas.pack()		
 
@@ -156,8 +134,8 @@ def create_number_buttons():
 def create_utility_buttons():
 	buttons = tkinter.Frame(root, bd=0)
 	buttons.pack(pady=5)
-	generate = tkinter.Button(buttons, text="Generate Random")
-	solve = tkinter.Button(buttons, text="Solve")
+	generate = tkinter.Button(buttons, text="Generate Random", command=generate_random)
+	solve = tkinter.Button(buttons, text="Solve", command=solve_sudoku)
 	generate.pack(side=tkinter.LEFT, padx=5)
 	solve.pack(side=tkinter.LEFT, padx=5)
 
@@ -168,8 +146,8 @@ def main():
 	root.title('Sudoku Solver')	
 	create_sudoku_board()
 	create_number_buttons()
-	create_utility_buttons()
-	root.mainloop()
+	create_utility_buttons()	
+	root.mainloop()	
 
 if __name__ == '__main__':
 	main()
