@@ -45,8 +45,14 @@ def find_closest_tile_y(rawval):
 		return i
 	return -1
 
-def update_valid(x, y, num):
-	for i in range(x-1, -1, -1): valid_numbers[i][y][num] = True 
-	for i in range(x+1, 9): valid_numbers[i][y][num] = True 
-	for i in range(y-1, -1, -1): valid_numbers[x][i][num] = True 
-	for i in range(y+1, 9): valid_numbers[x][i][num] = True 
+def update_valid(x, y, num, val):
+	for i in range(x-1, -1, -1): valid_numbers[i][y][num] = val 
+	for i in range(x+1, 9): valid_numbers[i][y][num] = val
+	for i in range(y-1, -1, -1): valid_numbers[x][i][num] = val 
+	for i in range(y+1, 9): valid_numbers[x][i][num] = val 
+
+def reset_valid():
+	for i in range(9):
+		for j in range(9):
+			for num in range(9):
+				valid_numbers[i][j][num] = False
