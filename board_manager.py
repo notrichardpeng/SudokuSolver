@@ -3,7 +3,7 @@ board = [[-1 for i in range(9)] for j in range(9)]
 tile_x = []
 tile_y = []
 
-valid_numbers = [[[False for k in range(9)] for j in range(9)] for i in range(9)]
+valid_numbers = [[[0 for k in range(9)] for j in range(9)] for i in range(9)]
 
 def find_closest_tile_x(rawval):		
 	if rawval <= 45 or rawval >= 405:
@@ -46,13 +46,24 @@ def find_closest_tile_y(rawval):
 	return -1
 
 def update_valid(x, y, num, val):
-	for i in range(x-1, -1, -1): valid_numbers[i][y][num] = val 
-	for i in range(x+1, 9): valid_numbers[i][y][num] = val
-	for i in range(y-1, -1, -1): valid_numbers[x][i][num] = val 
-	for i in range(y+1, 9): valid_numbers[x][i][num] = val 
+	for i in range(x-1, -1, -1): valid_numbers[i][y][num] += val 
+	for i in range(x+1, 9): valid_numbers[i][y][num] += val
+	for i in range(y-1, -1, -1): valid_numbers[x][i][num] += val 
+	for i in range(y+1, 9): valid_numbers[x][i][num] += val 
+
+	startx, starty = 0, 0	
+	if x >= 3 and x < 6: startx = 3
+	elif x >= 6: startx = 6
+	if y >= 3 and y < 6: starty = 3
+	elif y >= 6: starty = 6
+
+	for i in range(startx, startx+3):
+		for j in range(starty, starty+3):
+			valid_numbers[i][j][num] += val
+
 
 def reset_valid():
 	for i in range(9):
 		for j in range(9):
 			for num in range(9):
-				valid_numbers[i][j][num] = False
+				valid_numbers[i][j][num] = 0

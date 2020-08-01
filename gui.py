@@ -21,7 +21,7 @@ def reset_active_number():
 
 def canvas_on_click(event):					
 	if edit_number == " ":
-		return
+		return		
 	
 	mousex = canvas.canvasx(event.x)
 	mousey = canvas.canvasy(event.y)
@@ -31,18 +31,28 @@ def canvas_on_click(event):
 	if x < 0 or y < 0: return
 	
 	clicked = BM.board[x][y]
-	if canvas.itemcget(clicked, 'text') != "X": 
-		canvas.itemconfig(clicked, text=edit_number, fill="blue")
-		if edit_number == " ":
-			BM.update_valid(x, y, int(canvas.itemcget(clicked, 'text'))-1, False)			
+	if edit_number != '' and canvas.itemcget(clicked, 'text') != ' ': return
+
+	if canvas.itemcget(clicked, 'text') != "X": 		
+		if edit_number == "":
+			t = canvas.itemcget(clicked, 'text')
+			if t == ' ': return
+
+			check = int(t)-1
+			BM.update_valid(x, y, check, -1)	
+			for i in range(9):
+				for j in range(9):			
+					if BM.valid_numbers[i][j][check]==0 and canvas.itemcget(BM.board[i][j], 'text') == 'X':
+						canvas.itemconfig(BM.board[i][j], text=' ')				
+			canvas.itemconfig(clicked, text=" ", fill="blue")	
 		else:
-			BM.update_valid(x, y, int(edit_number)-1, True)
+			check = int(edit_number)-1
+			BM.update_valid(x, y, check, 1)
 			for i in range(9):
-				if canvas.itemcget(BM.board[i][y], 'text') == " ": 
-					canvas.itemconfig(BM.board[i][y], text="X", fill="red")
-			for i in range(9):
-				if canvas.itemcget(BM.board[x][i], 'text') == " ": 
-					canvas.itemconfig(BM.board[x][i], text="X", fill="red")			
+				for j in range(9):			
+					if BM.valid_numbers[i][j][check]>0 and canvas.itemcget(BM.board[i][j], 'text') == ' ':
+						canvas.itemconfig(BM.board[i][j], text='X', fill="red")	
+			canvas.itemconfig(clicked, text=edit_number, fill="blue")	
 
 def edit_number_button(num, b):
 	global edit_number, current_active_number, canvas	
@@ -53,11 +63,12 @@ def edit_number_button(num, b):
 		reset_active_number()		
 		return
 
-	check = int(num)-1
-	for i in range(9):
-		for j in range(9):			
-			if BM.valid_numbers[i][j][check]==True and canvas.itemcget(BM.board[i][j], 'text') == ' ':
-				canvas.itemconfig(BM.board[i][j], text='X', fill="red")
+	if num != '':
+		check = int(num)-1
+		for i in range(9):
+			for j in range(9):			
+				if BM.valid_numbers[i][j][check]>0 and canvas.itemcget(BM.board[i][j], 'text') == ' ':
+					canvas.itemconfig(BM.board[i][j], text='X', fill="red")
 
 	if current_active_number: current_active_number.config(relief=tkinter.RAISED)
 	b.config(relief=tkinter.SUNKEN)	
