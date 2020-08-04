@@ -1,9 +1,38 @@
+from gui import canvas
 
-board = [[-1 for i in range(9)] for j in range(9)]
+class Boardtile:
+	def __init__(self, tkid, val):
+		self.tkid = tkid
+		self.val = val
+
+valid_numbers = [[[0 for k in range(9)] for j in range(9)] for i in range(9)]
+board = [[None for i in range(9)] for j in range(9)]
 tile_x = []
 tile_y = []
 
-valid_numbers = [[[0 for k in range(9)] for j in range(9)] for i in range(9)]
+def solve_sudoku():
+	hasempty = False
+	for i in range(9):
+		for j in range(9):
+			if board[i][j].val == " ":
+				hasempty = True
+				for n in range(1, 10):
+					canvas.itemconfig(board[i][j].tkid, text=str(n), fill="blue")
+					board[i][j].val = str(n)
+					update_valid(i, j, n-1, 1)
+
+					if valid_numbers[i][j][n-1] == 0 and solve_sudoku():						
+						return True
+						
+					update_valid(i, j, n-1, -1)
+					canvas.itemconfig(board[i][j].tkid, text=" ")
+
+				board[i][j].val = " "
+
+	if not hasempty:
+		return True
+	return False
+
 
 def find_closest_tile_x(rawval):		
 	if rawval <= 45 or rawval >= 405:

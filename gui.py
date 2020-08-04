@@ -2,9 +2,8 @@
 import tkinter
 import board_manager as BM
 
-root = tkinter.Tk()
-canvas = tkinter.Canvas(root, width=450, height=400)	
-
+canvas = None
+root = None
 edit_number = " "
 current_active_number = None
 
@@ -25,12 +24,13 @@ def canvas_on_click(event):
 	
 	mousex = canvas.canvasx(event.x)
 	mousey = canvas.canvasy(event.y)
-	x = BM.find_closest_tile_x(mousex) 
-	y = BM.find_closest_tile_y(mousey)	
+	r = BM.find_closest_tile_y(mousey)	
+	c = BM.find_closest_tile_x(mousex) 
+
+	if r < 0 or c < 0: return
 	
-	if x < 0 or y < 0: return
-	
-	clicked = BM.board[x][y]
+	clicked = BM.board[r][c].tkid
+	print(BM.board[r][c].val)
 	if edit_number != '' and canvas.itemcget(clicked, 'text') != ' ': return
 
 	if canvas.itemcget(clicked, 'text') != "X": 		
@@ -39,20 +39,22 @@ def canvas_on_click(event):
 			if t == ' ': return
 
 			check = int(t)-1
-			BM.update_valid(x, y, check, -1)	
+			BM.update_valid(r, c, check, -1)	
 			for i in range(9):
 				for j in range(9):			
-					if BM.valid_numbers[i][j][check]==0 and canvas.itemcget(BM.board[i][j], 'text') == 'X':
-						canvas.itemconfig(BM.board[i][j], text=' ')				
+					if BM.valid_numbers[i][j][check]==0 and canvas.itemcget(BM.board[i][j].tkid, 'text') == 'X':
+						canvas.itemconfig(BM.board[i][j].tkid, text=' ')
 			canvas.itemconfig(clicked, text=" ", fill="blue")	
+			BM.board[r][c].val = " "
 		else:
 			check = int(edit_number)-1
-			BM.update_valid(x, y, check, 1)
+			BM.update_valid(r, c, check, 1)
 			for i in range(9):
 				for j in range(9):			
-					if BM.valid_numbers[i][j][check]>0 and canvas.itemcget(BM.board[i][j], 'text') == ' ':
-						canvas.itemconfig(BM.board[i][j], text='X', fill="red")	
+					if BM.valid_numbers[i][j][check]>0 and canvas.itemcget(BM.board[i][j].tkid, 'text') == ' ':
+						canvas.itemconfig(BM.board[i][j].tkid, text='X', fill="red")	
 			canvas.itemconfig(clicked, text=edit_number, fill="blue")	
+			BM.board[r][c].val = edit_number
 
 def edit_number_button(num, b):
 	global edit_number, current_active_number, canvas	
@@ -67,8 +69,8 @@ def edit_number_button(num, b):
 		check = int(num)-1
 		for i in range(9):
 			for j in range(9):			
-				if BM.valid_numbers[i][j][check]>0 and canvas.itemcget(BM.board[i][j], 'text') == ' ':
-					canvas.itemconfig(BM.board[i][j], text='X', fill="red")
+				if BM.valid_numbers[i][j][check]>0 and canvas.itemcget(BM.board[i][j].tkid, 'text') == ' ':
+					canvas.itemconfig(BM.board[i][j].tkid, text='X', fill="red")
 
 	if current_active_number: current_active_number.config(relief=tkinter.RAISED)
 	b.config(relief=tkinter.SUNKEN)	
@@ -80,10 +82,13 @@ def clear_board():
 	for i in tiles:
 		canvas.itemconfig(i, text=" ")
 
+	for i in range(9):
+		for j in range(9):
+			BM.board[i][j].val = " "
+
 	if current_active_number != None:
 		reset_active_number()
 		clear_x()	
-
 	BM.reset_valid()
 
 def generate_random():
@@ -91,8 +96,9 @@ def generate_random():
 	clear_x()
 
 def solve_sudoku():
-	reset_active_number()
-	clear_x()
+	if BM.solve_sudoku():
+		print("Solved")
+	else: print("Unsolvable")
 
 #Visual----------------------------------------------------------------------------------------------
 
@@ -120,7 +126,7 @@ def create_sudoku_board():
 			c = canvas.coords(tile)				
 			cx, cy = c[0], c[1]
 			if len(BM.tile_y) < 9: BM.tile_y.append(cy)			
-			BM.board[i][j] = tile			
+			BM.board[j][i] = BM.Boardtile(tile, " ") # Board[j][i] because coordinate system different for Tkinter	
 		BM.tile_x.append(cx)		
 
 	canvas.bind("<Button-1>", canvas_on_click)
@@ -157,12 +163,20 @@ def clear_x():
 	global canvas
 	for i in range(9):
 		for j in range(9):
-			if canvas.itemcget(BM.board[i][j], 'text') == 'X':
-				canvas.itemconfig(BM.board[i][j], text=" ")
+			if canvas.itemcget(BM.board[i][j].tkid, 'text') == 'X':
+				canvas.itemconfig(BM.board[i][j].tkid, text=" ")
 
 #----------------------------------------------------------------------------------------------------
 
 def main():	
+	global root, canvas, edit_number, current_active_number
+	root = tkinter.Tk()
+	canvas = tkinter.Canvas(root, width=450, height=400)	
+
+	edit_number = " "
+	current_active_number = None
+
+
 	root.geometry('500x500')
 	root.title('Sudoku Solver')	
 	create_sudoku_board()
