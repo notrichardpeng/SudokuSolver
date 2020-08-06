@@ -1,4 +1,4 @@
-from gui import canvas
+import time
 
 class Boardtile:
 	def __init__(self, tkid, val):
@@ -10,29 +10,36 @@ board = [[None for i in range(9)] for j in range(9)]
 tile_x = []
 tile_y = []
 
-def solve_sudoku():
-	hasempty = False
+def solve_sudoku(canvas):
+
+	empty = find_empty_spot()
+	if not empty: return True
+
+	i, j = empty[0], empty[1]
+	for n in range(1, 10):					
+		canvas.itemconfig(board[i][j].tkid, text=str(n), fill="green4")
+		board[i][j].val = str(n)
+
+		time.sleep(0.01)		
+
+		if(valid_numbers[i][j][n-1] == 0):
+			update_valid(i, j, n-1, 1)	
+			if solve_sudoku(canvas):
+				return True				
+			update_valid(i, j, n-1, -1)
+
+		canvas.itemconfig(board[i][j].tkid, text=" ", fill="green")
+					
+	board[i][j].val = " "
+
+	return False
+
+def find_empty_spot():
 	for i in range(9):
 		for j in range(9):
 			if board[i][j].val == " ":
-				hasempty = True
-				for n in range(1, 10):
-					canvas.itemconfig(board[i][j].tkid, text=str(n), fill="blue")
-					board[i][j].val = str(n)
-					update_valid(i, j, n-1, 1)
-
-					if valid_numbers[i][j][n-1] == 0 and solve_sudoku():						
-						return True
-						
-					update_valid(i, j, n-1, -1)
-					canvas.itemconfig(board[i][j].tkid, text=" ")
-
-				board[i][j].val = " "
-
-	if not hasempty:
-		return True
-	return False
-
+				return [i, j]
+	return None
 
 def find_closest_tile_x(rawval):		
 	if rawval <= 45 or rawval >= 405:

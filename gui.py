@@ -1,5 +1,6 @@
 
 import tkinter
+import threading
 import board_manager as BM
 
 canvas = None
@@ -96,7 +97,8 @@ def generate_random():
 	clear_x()
 
 def solve_sudoku():
-	if BM.solve_sudoku():
+	global canvas
+	if BM.solve_sudoku(canvas):
 		print("Solved")
 	else: print("Unsolvable")
 
@@ -155,7 +157,7 @@ def create_utility_buttons():
 	buttons = tkinter.Frame(root, bd=0)
 	buttons.pack(pady=5)
 	generate = tkinter.Button(buttons, text="Generate Random", command=generate_random)
-	solve = tkinter.Button(buttons, text="Solve", command=solve_sudoku)
+	solve = tkinter.Button(buttons, text="Solve", command=lambda: threading.Thread(target=solve_sudoku).start())
 	generate.pack(side=tkinter.LEFT, padx=5)
 	solve.pack(side=tkinter.LEFT, padx=5)
 
