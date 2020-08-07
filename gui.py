@@ -2,11 +2,13 @@
 import tkinter
 import threading
 import board_manager as BM
+from tkinter import messagebox
 
 canvas = None
 root = None
 edit_number = " "
 current_active_number = None
+is_solving = False
 
 #Helper functions-----------------------------------------------------------------------------------------
 
@@ -19,8 +21,9 @@ def reset_active_number():
 
 #Callbacks-------------------------------------------------------------------------------------------
 
-def canvas_on_click(event):					
-	if edit_number == " ":
+def canvas_on_click(event):			
+	global is_solving
+	if edit_number == " " or is_solving:
 		return		
 	
 	mousex = canvas.canvasx(event.x)
@@ -30,8 +33,7 @@ def canvas_on_click(event):
 
 	if r < 0 or c < 0: return
 	
-	clicked = BM.board[r][c].tkid
-	print(BM.board[r][c].val)
+	clicked = BM.board[r][c].tkid	
 	if edit_number != '' and canvas.itemcget(clicked, 'text') != ' ': return
 
 	if canvas.itemcget(clicked, 'text') != "X": 		
@@ -58,7 +60,9 @@ def canvas_on_click(event):
 			BM.board[r][c].val = edit_number
 
 def edit_number_button(num, b):
-	global edit_number, current_active_number, canvas	
+	global edit_number, current_active_number, canvas, is_solving
+	if is_solving: return
+
 	edit_number = num
 	
 	clear_x()
@@ -78,7 +82,9 @@ def edit_number_button(num, b):
 	current_active_number = b
 
 def clear_board():
-	global canvas, current_active_number, edit_number
+	global canvas, current_active_number, edit_number, is_solving
+	if is_solving: return	
+
 	tiles = canvas.find_withtag("tile")
 	for i in tiles:
 		canvas.itemconfig(i, text=" ")
@@ -93,14 +99,23 @@ def clear_board():
 	BM.reset_valid()
 
 def generate_random():
+	global is_solving
+	if is_solving: return
+
 	reset_active_number()
 	clear_x()
 
 def solve_sudoku():
-	global canvas
+	global is_solving, canvas
+	if is_solving: return
+
+	reset_active_number()
+	clear_x()
+	is_solving = True	
 	if BM.solve_sudoku(canvas):
-		print("Solved")
-	else: print("Unsolvable")
+		messagebox.showinfo("Result", "The given sudoku has been solved!")
+	else: messagebox.showinfo("Result", "The given sudoku is unsolvable.")
+	is_solving = False
 
 #Visual----------------------------------------------------------------------------------------------
 
