@@ -8,7 +8,9 @@ canvas = None
 root = None
 edit_number = " "
 current_active_number = None
-is_solving = False
+triestext = None
+
+gui_buttons = []
 
 #Helper functions-----------------------------------------------------------------------------------------
 
@@ -22,8 +24,7 @@ def reset_active_number():
 #Callbacks-------------------------------------------------------------------------------------------
 
 def canvas_on_click(event):			
-	global is_solving
-	if edit_number == " " or is_solving:
+	if edit_number == " ":
 		return		
 	
 	mousex = canvas.canvasx(event.x)
@@ -60,8 +61,7 @@ def canvas_on_click(event):
 			BM.board[r][c].val = edit_number
 
 def edit_number_button(num, b):
-	global edit_number, current_active_number, canvas, is_solving
-	if is_solving: return
+	global edit_number, current_active_number, canvas	
 
 	edit_number = num
 	
@@ -82,8 +82,7 @@ def edit_number_button(num, b):
 	current_active_number = b
 
 def clear_board():
-	global canvas, current_active_number, edit_number, is_solving
-	if is_solving: return	
+	global canvas, current_active_number, edit_number	
 
 	tiles = canvas.find_withtag("tile")
 	for i in tiles:
@@ -99,23 +98,30 @@ def clear_board():
 	BM.reset_valid()
 
 def generate_random():
-	global is_solving
-	if is_solving: return
-
 	reset_active_number()
 	clear_x()
 
 def solve_sudoku():
-	global is_solving, canvas
-	if is_solving: return
+	global canvas
+	
+	for b in gui_buttons:
+		if b['state'] == tkinter.DISABLED:
+			b['state'] = tkinter.ACTIVE
+		else:
+			b['state'] = tkinter.DISABLED
 
 	reset_active_number()
 	clear_x()
-	is_solving = True	
-	if BM.solve_sudoku(canvas):
-		messagebox.showinfo("Result", "The given sudoku has been solved!")
-	else: messagebox.showinfo("Result", "The given sudoku is unsolvable.")
-	is_solving = False
+	BM.reset_tries(triestext)
+	
+	if BM.solve_sudoku(canvas, triestext):
+		messagebox.showinfo("Result", "The given sudoku has been solved after " + str(BM.tries) + " tries!")
+	else: messagebox.showinfo("Result", "The given sudoku is unsolvable after trying " + str(BM.tries) + " times.")	
+
+	triestext['text'] = ""
+
+def stop_simulation():
+	return
 
 #Visual----------------------------------------------------------------------------------------------
 
@@ -139,7 +145,7 @@ def create_sudoku_board():
 			x = i*spacing+(spacing/2)+start_x
 			y = j*spacing+(spacing/2)+start_y
 
-			tile = canvas.create_text(x, y, text=" ", tags=("tile", "tile"+str(i)+str(j)))
+			tile = canvas.create_text(x, y, text=" ", tags=("tile"))
 			c = canvas.coords(tile)				
 			cx, cy = c[0], c[1]
 			if len(BM.tile_y) < 9: BM.tile_y.append(cy)			
@@ -160,6 +166,7 @@ def create_number_buttons():
 		button = tkinter.Button(numbers, text=str(i))
 		button.config(command=lambda i=i,button=button: edit_number_button(str(i), button))
 		button.pack(side=tkinter.LEFT, padx=5)		
+		gui_buttons.append(button)
 
 	delete = tkinter.Button(numbers, text="remove")
 	delete.config(command=lambda i=i,button=delete: edit_number_button("", button))
@@ -168,13 +175,27 @@ def create_number_buttons():
 	deleteAll.config(command=clear_board)
 	deleteAll.pack(side=tkinter.LEFT, padx=5)
 
-def create_utility_buttons():
+	gui_buttons.append(delete)
+	gui_buttons.append(deleteAll)
+
+def create_utility():
 	buttons = tkinter.Frame(root, bd=0)
 	buttons.pack(pady=5)
 	generate = tkinter.Button(buttons, text="Generate Random", command=generate_random)
 	solve = tkinter.Button(buttons, text="Solve", command=lambda: threading.Thread(target=solve_sudoku).start())
+	stop = tkinter.Button(buttons, text="Stop", command=stop_simulation, state=tkinter.DISABLED)
+
 	generate.pack(side=tkinter.LEFT, padx=5)
 	solve.pack(side=tkinter.LEFT, padx=5)
+	stop.pack(side=tkinter.LEFT, padx=5)
+
+	gui_buttons.append(generate)
+	gui_buttons.append(solve)
+	gui_buttons.append(stop)
+
+	global triestext
+	triestext = tkinter.Label(root, text=" ")
+	triestext.pack(pady=5)
 
 def clear_x():
 	global canvas
@@ -194,11 +215,11 @@ def main():
 	current_active_number = None
 
 
-	root.geometry('500x500')
+	root.geometry('500x520')
 	root.title('Sudoku Solver')	
 	create_sudoku_board()
 	create_number_buttons()
-	create_utility_buttons()	
+	create_utility()	
 	root.mainloop()	
 
 if __name__ == '__main__':

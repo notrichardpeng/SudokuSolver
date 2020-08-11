@@ -9,9 +9,15 @@ valid_numbers = [[[0 for k in range(9)] for j in range(9)] for i in range(9)]
 board = [[None for i in range(9)] for j in range(9)]
 tile_x = []
 tile_y = []
+tries = 0
 
-def solve_sudoku(canvas):
+def reset_tries(triestext):
+	global tries
+	tries = 0
+	triestext['text'] = "Tries: 0"
 
+def solve_sudoku(canvas, triestext):
+	global tries
 	empty = find_empty_spot()
 	if not empty: return True
 
@@ -23,8 +29,10 @@ def solve_sudoku(canvas):
 		time.sleep(0.01)		
 
 		if(valid_numbers[i][j][n-1] == 0):
+			tries += 1
+			triestext['text'] = "Tries: " + str(tries)
 			update_valid(i, j, n-1, 1)	
-			if solve_sudoku(canvas):
+			if solve_sudoku(canvas, triestext):
 				return True				
 			update_valid(i, j, n-1, -1)
 
