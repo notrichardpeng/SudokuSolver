@@ -98,8 +98,7 @@ def clear_board():
 	BM.reset_valid()
 
 def generate_random():
-	reset_active_number()
-	clear_x()
+	clear_board()
 
 def solve_sudoku():
 	global canvas
@@ -110,18 +109,28 @@ def solve_sudoku():
 		else:
 			b['state'] = tkinter.DISABLED
 
+	BM.solve_active = True
 	reset_active_number()
 	clear_x()
 	BM.reset_tries(triestext)
 	
 	if BM.solve_sudoku(canvas, triestext):
 		messagebox.showinfo("Result", "The given sudoku has been solved after " + str(BM.tries) + " tries!")
-	else: messagebox.showinfo("Result", "The given sudoku is unsolvable after trying " + str(BM.tries) + " times.")	
+	elif BM.solve_active: 
+		messagebox.showinfo("Result", "The given sudoku is unsolvable after trying " + str(BM.tries) + " times.")	
+	else:
+		messagebox.showinfo("Result", "The solve attempt is terminated!")
 
 	triestext['text'] = ""
+	BM.solve_active = False
 
 def stop_simulation():
-	return
+	BM.solve_active = False
+	for b in gui_buttons:
+		if b['state'] == tkinter.DISABLED:
+			b['state'] = tkinter.ACTIVE
+		else:
+			b['state'] = tkinter.DISABLED
 
 #Visual----------------------------------------------------------------------------------------------
 

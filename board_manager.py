@@ -10,6 +10,8 @@ board = [[None for i in range(9)] for j in range(9)]
 tile_x = []
 tile_y = []
 tries = 0
+solve_active = False
+
 
 def reset_tries(triestext):
 	global tries
@@ -17,6 +19,8 @@ def reset_tries(triestext):
 	triestext['text'] = "Tries: 0"
 
 def solve_sudoku(canvas, triestext):
+	if not solve_active: return False
+
 	global tries
 	empty = find_empty_spot()
 	if not empty: return True
@@ -41,6 +45,11 @@ def solve_sudoku(canvas, triestext):
 	board[i][j].val = " "
 
 	return False
+
+
+
+
+
 
 def find_empty_spot():
 	for i in range(9):
