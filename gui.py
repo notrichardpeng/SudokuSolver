@@ -99,6 +99,9 @@ def clear_board():
 
 def generate_random():
 	clear_board()
+	BM.generate_solved_board()
+	BM.remove_solved_numbers()
+	BM.fill_in_visual_for_board(canvas)
 
 def solve_sudoku():
 	global canvas
@@ -121,16 +124,18 @@ def solve_sudoku():
 	else:
 		messagebox.showinfo("Result", "The solve attempt is terminated!")
 
-	triestext['text'] = ""
-	BM.solve_active = False
-
-def stop_simulation():
+	
 	BM.solve_active = False
 	for b in gui_buttons:
 		if b['state'] == tkinter.DISABLED:
 			b['state'] = tkinter.ACTIVE
 		else:
 			b['state'] = tkinter.DISABLED
+
+	triestext['text'] = ""
+
+def stop_simulation():
+	BM.solve_active = False	
 
 #Visual----------------------------------------------------------------------------------------------
 
