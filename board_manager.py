@@ -68,8 +68,11 @@ def not_unique_solution(count):
 
 			update_valid(i, j, n-1, 1)	
 			if not_unique_solution(count):
-				return True				
-			update_valid(i, j, n-1, -1)
+				update_valid(i, j, n-1, -1)
+				board[i][j].val = " "
+				return True			
+
+			update_valid(i, j, n-1, -1)				
 	
 	board[i][j].val = " "
 	return False	
@@ -97,10 +100,10 @@ def generate_solved_board():
 	return False	
 
 def remove_solved_numbers():
-	num_clues = random.randint(17, 38)
+	num_clues = random.randint(30, 37)
 	num_remove = 81 - num_clues
-
-	while num_remove > 0:
+	print(num_remove)
+	while num_remove > 0:	
 		i, j = random.randint(0, 8), random.randint(0, 8)
 		if board[i][j].val == " ": continue
 
@@ -112,7 +115,7 @@ def remove_solved_numbers():
 		if not_unique_solution(count):
 			board[i][j].val = temp
 			update_valid(i, j, int(temp)-1, 1)
-		else:
+		else:	
 			num_remove -= 1
 
 def fill_in_visual_for_board(canvas):
